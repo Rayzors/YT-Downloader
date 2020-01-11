@@ -3,31 +3,34 @@
     <h1>Youtube Downloader</h1>
     <div class="container" v-if="!loading">
       <div class="left">
-        <validation-provider rules="required|youtubeURL" v-slot="{ errors }">
-          <input
-            v-model="url"
-            placeholder="https://www.youtube.com/watch?v=H_3JiTfmuzg"
-          />
-          <div class="error">{{ errors[0] }}</div>
-          <div class="error">{{ errors[1] }}</div>
-        </validation-provider>
+        <div v-for="(field, i) in fields" :key="i">
+          <validation-provider rules="required|youtubeURL" v-slot="{ errors }">
+            <input
+              v-model="field.videoURL"
+              placeholder="https://www.youtube.com/watch?v=H_3JiTfmuzg"
+            />
+            <div class="error">{{ errors[0] }}</div>
+            <div class="error">{{ errors[1] }}</div>
+          </validation-provider>
+          <button @click="deleteField(i)">X</button>
+        </div>
       </div>
       <div class="right">
-        <validation-provider rules="required" v-slot="{ errors }">
-          <select v-model="type">
-            <option value="video">MP4</option>
-            <option value="audio">MP3</option>
-          </select>
-          <span class="error">{{ errors[0] }}</span>
-        </validation-provider>
-
-        <button @click="download">Envoyer</button>
+        <div v-for="(field, i) in fields" :key="i">
+          <validation-provider rules="required" v-slot="{ errors }">
+            <select v-model="field.type">
+              <option value="video">MP4</option>
+              <option value="audio">MP3</option>
+            </select>
+            <span class="error">{{ errors[0] }}</span>
+          </validation-provider>
+        </div>
       </div>
+      <button @click="addField">Ajouter un champs</button>
+      <button @click="download">Envoyer</button>
     </div>
 
-    <div v-if="loading">
-      Loading
-    </div>
+    <div v-if="loading">Loading</div>
     <div v-if="!loading && downloadURL">
       <h2>{{ filename }}</h2>
       <a :href="downloadURL" :download="filename">Télécharger</a>
@@ -36,12 +39,18 @@
 </template>
 
 <script>
-import { ref } from '@vue/composition-api';
+import { ref, computed } from '@vue/composition-api';
 import { ValidationProvider, extend } from 'vee-validate';
-import { required } from 'vee-validate/dist/rules';
+import useFetchVideo from '../composables/fetchVideo';
 
 extend('required', {
-  ...required,
+  validate: (value) => {
+    return {
+      required: true,
+      valid: ['', null, undefined].indexOf(value) === -1,
+    };
+  },
+  computesRequired: true,
   message: 'Ce champ est requis',
 });
 
@@ -62,49 +71,40 @@ export default {
     ValidationProvider,
   },
   setup() {
-    const url = ref('');
-    const loading = ref(false);
-    const downloadURL = ref(null);
-    const filename = ref(null);
-    const type = ref('');
+    const type = ref('video');
+    const fields = ref([
+      {
+        videoURL: '',
+        type: 'video',
+      },
+    ]);
 
-    async function download() {
-      const choices = {
-        userChoices: [{ videoURL: url.value, type: type.value }],
-      };
-      loading.value = true;
-      const res = await fetch('http://localhost:4444/video', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(choices),
+    const choices = computed(() => ({
+      userChoices: fields.value,
+    }));
+
+    const addField = function() {
+      fields.value.push({
+        videoURL: '',
+        type: 'video',
       });
+    };
 
-      const blob = await res.blob();
-      filename.value = getFilenameFromHeader(res);
-      downloadURL.value = window.URL.createObjectURL(blob);
-      // window.URL.revokeObjectURL(downloadURL.value);
-      loading.value = false;
-      url.value = null;
-    }
+    const deleteField = function(index) {
+      fields.value.splice(index, 1);
+    };
 
-    function getFilenameFromHeader(response) {
-      const string = response.headers.get('Content-Disposition');
-      const regex = /filename="([\w_]+.\w{3})"/;
-      const matches = string.match(regex);
-
-      return matches[1];
-    }
+    const { filename, downloadURL, loading, download } = useFetchVideo(choices);
 
     return {
-      url,
+      fields,
       download,
       loading,
-      downloadURL,
       filename,
+      downloadURL,
       type,
+      addField,
+      deleteField,
     };
   },
 };

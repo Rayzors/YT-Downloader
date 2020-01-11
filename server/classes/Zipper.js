@@ -1,8 +1,9 @@
+const fs = require('fs');
 const zip = new require('node-zip')();
 
 class Zipper {
   static zipFiles(path) {
-    return function(filesArray) {
+    return (filesArray) => {
       try {
         const data = this.generateData(filesArray);
         fs.writeFileSync(path, data, 'binary');
@@ -21,3 +22,5 @@ class Zipper {
     return zip.generate({ base64: false, compression: 'DEFLATE' });
   }
 }
+
+module.exports = Zipper;
