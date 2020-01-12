@@ -2,32 +2,43 @@
   <div class="hello">
     <h1>Youtube Downloader</h1>
     <div class="container" v-if="!loading">
-      <div class="left">
-        <div v-for="(field, i) in fields" :key="i">
-          <validation-provider rules="required|youtubeURL" v-slot="{ errors }">
-            <input
-              v-model="field.videoURL"
-              placeholder="https://www.youtube.com/watch?v=H_3JiTfmuzg"
-            />
-            <div class="error">{{ errors[0] }}</div>
-            <div class="error">{{ errors[1] }}</div>
-          </validation-provider>
-          <button @click="deleteField(i)">X</button>
-        </div>
-      </div>
-      <div class="right">
-        <div v-for="(field, i) in fields" :key="i">
-          <validation-provider rules="required" v-slot="{ errors }">
-            <select v-model="field.type">
-              <option value="video">MP4</option>
-              <option value="audio">MP3</option>
-            </select>
-            <span class="error">{{ errors[0] }}</span>
-          </validation-provider>
-        </div>
-      </div>
-      <button @click="addField">Ajouter un champs</button>
-      <button @click="download">Envoyer</button>
+      <validation-observer ref="form" v-slot="{ handleSubmit }">
+        <form @submit.prevent="handleSubmit(download)">
+          <div class="field-group" v-for="(field, i) in fields" :key="i">
+            <validation-provider
+              class="input"
+              rules="required|youtubeURL"
+              v-slot="{ errors }"
+            >
+              <input
+                v-model="field.videoURL"
+                placeholder="https://www.youtube.com/watch?v=H_3JiTfmuzg"
+              />
+              <div class="error">{{ errors[0] }}</div>
+              <div class="error">{{ errors[1] }}</div>
+            </validation-provider>
+            <validation-provider
+              class="select"
+              rules="required"
+              v-slot="{ errors }"
+            >
+              <select v-model="field.type">
+                <option value="video">MP4</option>
+                <option value="audio">MP3</option>
+              </select>
+              <span class="error">{{ errors[0] }}</span>
+            </validation-provider>
+            <button class="closeButton" @click="deleteField(i)" v-if="i !== 0">
+              X
+            </button>
+          </div>
+          <div class="bottom">
+            <button @click="addField">Ajouter un champs</button>
+            <button type="reset" @click="resetFields">Réinitialiser</button>
+            <button type="submit">Envoyer</button>
+          </div>
+        </form>
+      </validation-observer>
     </div>
 
     <div v-if="loading">Loading</div>
@@ -39,8 +50,8 @@
 </template>
 
 <script>
-import { ref, computed } from '@vue/composition-api';
-import { ValidationProvider, extend } from 'vee-validate';
+import { ref, computed, watch } from '@vue/composition-api';
+import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
 import useFetchVideo from '../composables/fetchVideo';
 
 extend('required', {
@@ -69,9 +80,9 @@ export default {
   name: 'Home',
   components: {
     ValidationProvider,
+    ValidationObserver,
   },
-  setup() {
-    const type = ref('video');
+  setup(props, { refs }) {
     const fields = ref([
       {
         videoURL: '',
@@ -94,6 +105,16 @@ export default {
       fields.value.splice(index, 1);
     };
 
+    const resetFields = function() {
+      watch(fields, () => refs.form.reset());
+      fields.value = [
+        {
+          videoURL: '',
+          type: 'video',
+        },
+      ];
+    };
+
     const { filename, downloadURL, loading, download } = useFetchVideo(choices);
 
     return {
@@ -102,9 +123,9 @@ export default {
       loading,
       filename,
       downloadURL,
-      type,
       addField,
       deleteField,
+      resetFields,
     };
   },
 };
@@ -128,12 +149,17 @@ a {
 }
 
 .container {
-  display: flex;
   max-width: 1200px;
   margin: 0 auto;
 
-  & .left {
-    width: 70%;
+  & .field-group {
+    display: grid;
+    grid-template-columns: 4fr auto auto;
+    position: relative;
+
+    .input {
+      width: 100%;
+    }
 
     & input {
       width: 100%;
@@ -141,12 +167,19 @@ a {
       margin: 0;
       font-size: 1.5em;
     }
-  }
-
-  & .right {
     & select {
       font-size: 1.5em;
     }
+  }
+
+  .closeButton {
+    position: absolute;
+    right: 0;
+    transform: translate(100%);
+  }
+
+  .bottom {
+    width: 100%;
   }
 
   .error {
