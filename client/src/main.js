@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import VueCompositionApi from '@vue/composition-api';
+import './composables/validations';
 Vue.use(VueCompositionApi);
 
 import App from './App.vue';

@@ -27,7 +27,6 @@ app.post('/video', async (req, res) => {
 
     res.append('Access-Control-Expose-Headers', 'Content-Disposition');
 
-    console.log(results);
     if (results.length > 1) {
       const zipPath = `${rootPath}/zips/${Crypto.hash}.zip`;
       const isZipped = Zipper.zipFiles(zipPath)(results);

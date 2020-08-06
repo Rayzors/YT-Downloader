@@ -15,7 +15,11 @@ class DownloaderFacade {
       return Downloader.download(userChoice);
     });
 
-    return await Promise.all(promises);
+    try {
+      return await Promise.all(promises);
+    } catch (error) {
+      throw new Error(err);
+    }
   }
 }
 

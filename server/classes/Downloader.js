@@ -12,11 +12,15 @@ class Downloader {
   }
 
   static async getInfo(url) {
-    const {
-      player_response: { videoDetails },
-    } = await ytdl.getInfo(url);
+    try {
+      const {
+        player_response: { videoDetails },
+      } = await ytdl.getInfo(url);
 
-    return videoDetails;
+      return videoDetails || { title: 'no-title' };
+    } catch (e) {
+      throw new Error("Can't get info");
+    }
   }
 
   static convertToFormat({ videoURL, type }) {
