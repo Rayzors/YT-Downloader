@@ -6,6 +6,9 @@ const cors = require('cors');
 const Zipper = require('./classes/Zipper');
 const Downloader = require('./classes/DownloaderFacade');
 const Crypto = require('./classes/Crypto');
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 const rootPath = path.dirname(require.main.filename);
 const app = express();
