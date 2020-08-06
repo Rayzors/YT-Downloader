@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  client:
+    restart: always
+    image: node:12.16.3-alpine
+    working_dir: /srv/client
+    command: sh -c "yarn && yarn serve"
+    environment:
+      VUE_APP_API_URL: http://localhost:4444
+    links:
+      - server:server
+    volumes:
+      - ./client:/srv/client
+    ports:
+      - 8080:8080
+
+  server:
+    restart: always
+    image: node:12.16.3-alpine
+    working_dir: /srv/app
+    command: sh -c "yarn && yarn start"
+    volumes:
+      - ./server:/srv/app
+    ports:
+      - 4444:4444

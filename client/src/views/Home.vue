@@ -5,7 +5,11 @@
       <validation-observer ref="form" v-slot="{ handleSubmit }">
         <form @submit.prevent="handleSubmit(download)">
           <div class="field-group" v-for="(field, i) in fields" :key="i">
-            <validation-provider class="input" rules="required|youtubeURL" v-slot="{ errors }">
+            <validation-provider
+              class="input"
+              rules="required|youtubeURL"
+              v-slot="{ errors }"
+            >
               <input
                 v-model="field.videoURL"
                 placeholder="https://www.youtube.com/watch?v=H_3JiTfmuzg"
@@ -13,14 +17,20 @@
               <div class="error">{{ errors[0] }}</div>
               <div class="error">{{ errors[1] }}</div>
             </validation-provider>
-            <validation-provider class="select" rules="required" v-slot="{ errors }">
+            <validation-provider
+              class="select"
+              rules="required"
+              v-slot="{ errors }"
+            >
               <select v-model="field.type">
                 <option value="video">MP4</option>
                 <option value="audio">MP3</option>
               </select>
               <span class="error">{{ errors[0] }}</span>
             </validation-provider>
-            <button class="closeButton" @click="deleteField(i)" v-if="i !== 0">X</button>
+            <button class="closeButton" @click="deleteField(i)" v-if="i !== 0">
+              X
+            </button>
           </div>
           <div class="bottom">
             <button @click="addField">Ajouter un champs</button>
@@ -40,32 +50,32 @@
 </template>
 
 <script>
-import { ref, computed, watch } from "@vue/composition-api";
-import { ValidationProvider, ValidationObserver } from "vee-validate";
-import useFetchVideo from "../composables/fetchVideo";
+import { ref, computed, watch } from '@vue/composition-api';
+import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import useFetchVideo from '../composables/fetchVideo';
 
 export default {
-  name: "Home",
+  name: 'Home',
   components: {
     ValidationProvider,
-    ValidationObserver
+    ValidationObserver,
   },
   setup(props, { refs }) {
     const fields = ref([
       {
-        videoURL: "",
-        type: "video"
-      }
+        videoURL: '',
+        type: 'video',
+      },
     ]);
 
     const choices = computed(() => ({
-      userChoices: fields.value
+      userChoices: fields.value,
     }));
 
     function addField() {
       fields.value.push({
-        videoURL: "",
-        type: "video"
+        videoURL: '',
+        type: 'video',
       });
     }
 
@@ -77,9 +87,9 @@ export default {
       watch(fields, () => refs.form.reset());
       fields.value = [
         {
-          videoURL: "",
-          type: "video"
-        }
+          videoURL: '',
+          type: 'video',
+        },
       ];
     }
 
@@ -93,9 +103,9 @@ export default {
       downloadURL,
       addField,
       deleteField,
-      resetFields
+      resetFields,
     };
-  }
+  },
 };
 </script>
 

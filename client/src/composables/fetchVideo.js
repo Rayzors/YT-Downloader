@@ -9,7 +9,7 @@ export default function(userChoices) {
   const download = async function() {
     try {
       loading.value = true;
-      const res = await fetch('http://localhost:4444/video', {
+      const res = await fetch(`${process.env.VUE_APP_API_URL}/video`, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
